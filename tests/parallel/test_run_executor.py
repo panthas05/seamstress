@@ -7,7 +7,7 @@ import unittest
 from multiprocessing.synchronize import Lock as MultiprocessingLock
 
 import seamstress
-from seamstress.run_executor import ProcessStillAlive, ThreadStillAlive
+from seamstress.parallel.run_executor import ProcessStillAlive, ThreadStillAlive
 
 
 def build_threading_lock_acquirer(
