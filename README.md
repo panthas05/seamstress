@@ -8,10 +8,11 @@ for. `seamstress` makes it a little easier.
 ## How it Works
 
 The package provides a context manager that allows you to runs some code in a
-new thread in your test. The new thread will deterministically halt, so that you
-can "pause" it in any state you desire. Then, back in your test, you can run
-other code whose behaviour might be affected by the state of this new thread,
-and make assertions about how the code behaved.
+new thread or process in your test. The new thread/process will
+deterministically halt, so that you can "pause" it in any state you desire.
+Then, back in your test, you can run other code whose behaviour might be
+affected by the state of this new thread/process, and make assertions about how
+the code behaved.
 
 ## Examples
 
@@ -99,7 +100,11 @@ Let's break down what happened in the above.
   `PayIndividualLockHogger.tear_down_thread` runs in the created thread, and so
   it releases `PAY_INDIVIDUAL_LOCK`, and doesn't pollute any other tests.
   `seamstress.run_thread` then calls `.join()` on the thread, waiting for it to
-  terminate. 
+  terminate.
+
+If `pay_individual` used `multiprocessing.Lock`, the above test would be the
+same, but would use `seamstress.run_process` and `seamstress.ProcessConfig`
+instead.
 
 `seamstress.run_thread` can also be used as a decorator, so if we wanted to save
 a layer of intendation we could also have written the test as:
@@ -320,17 +325,6 @@ too!
 ### Flesh Out README More
 
 We should include an API reference for `run_thread` and `ThreadConfig`.
-
-### Extend to Support Processes
-
-The lock is acquired from another thread, but there's no reason why it couldn't
-be acquired from a process (python offers a multiprocessing version of `Event`,
-see
-[docs](https://docs.python.org/3/library/multiprocessing.html#multiprocessing.Event),
-which is pretty much entirely what this package is built around). I'd envision a
-new helper `run_process`, which may reuse code from `run_thread` (as
-`multiprocessing.Event` has the same methods as the ones on `threading.Event`
-that `run_thread` uses).
 
 ### Extend to Support Hogging Async Locks
 

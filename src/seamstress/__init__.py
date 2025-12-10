@@ -1,7 +1,9 @@
-from .run_thread import run_thread
-from .thread_config import ThreadConfig
+from .executor_config import ProcessConfig, ThreadConfig
+from .run_executor import run_process, run_thread
 
 __all__ = [
+    "run_process",
     "run_thread",
+    "ProcessConfig",
     "ThreadConfig",
 ]
