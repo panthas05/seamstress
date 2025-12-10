@@ -1,0 +1,36 @@
+[project]
+name = "seamstress"
+version = "0.1.0"
+authors = [
+    { name="Peter Thomas" }
+]
+description = "A utility for testing concurrent code."
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    # TODO: bump to stable once process and async locks are supported
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+]
+license = "MIT"
+license-files = ["LICEN[CS]E*"]
+keywords = ["threading", "multiprocessing", "locks", "testing"]
+
+[project.urls]
+Homepage = "https://github.com/panthas05/seamstress"
+Issues = "https://github.com/panthas05/seamstress/issues"
+Repository = "https://github.com/panthas05/seamstress"
+
+[build-system]
+requires = ["uv_build>=0.9.16,<0.10.0"]
+build-backend = "uv_build"
+
+[tool.mypy]
+strict = true
+
+[dependency-groups]
+dev = [
+    "mypy>=1.19.0",
+]
