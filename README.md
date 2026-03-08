@@ -7,12 +7,12 @@ for. `seamstress` makes it a little easier.
 
 ## How it Works
 
-The package provides a context manager that allows you to runs some code in a
-new thread or process in your test. The new thread/process will
+The package provides context managers that allow you to run some code in a new
+thread, process or async task in your test. The new thread/process/task will
 deterministically halt, so that you can "pause" it in any state you desire.
 Then, back in your test, you can run other code whose behaviour might be
-affected by the state of this new thread/process, and make assertions about how
-the code behaved.
+affected by the state of this new thread/process/task, and make assertions about
+how the code behaved.
 
 ## Examples
 
@@ -288,6 +288,64 @@ For example, you could use it to test code that uses:
 - UNIX file/io locks, using `fcntl`
 - A distributed redis lock, using `redis.lock.Lock`
 
+### Running tasks
+
+In analogy to `run_thread` and `run_process` an asynchronous utility called
+`run_task` is also provided. Its API is very similar.
+
+Say that `pay_individual` from the first example was actually an asynchronous
+function:
+~~~python
+# inside pay_individual.py
+import asyncio
+
+async def _pay_individual(...) -> None:
+    # The actual implementation of pay_individual
+    ...
+
+class AlreadyPayingIndividual(Exception):
+    pass
+
+PAY_INDIVIDUAL_LOCK = asyncio.Lock()
+
+async def pay_individual(...) -> None:
+    try:
+        async with asyncio.timeout(0.1):
+            await PAY_INDIVIDUAL_LOCK.acquire()
+    except asyncio.TimeoutError as e:
+        raise AlreadyPayingIndividual from e
+    
+    await _pay_individual(...)
+    
+    PAY_INDIVIDUAL_LOCK.release()
+
+~~~
+
+Using `run_task` and `TaskConfig` to test its behaviour may look something 
+like:
+~~~python
+# inside test_pay_individual.py
+import unittest
+
+import seamstress
+
+import pay_individual
+
+class PayIndividualLockHogger(seamstress.TaskConfig):
+    async def set_up_task(self) -> None:
+        await pay_individual.PAY_INDIVIDUAL_LOCK.acquire()
+    
+    async def tear_down_task(self) -> None:
+        pay_individual.PAY_INDIVIDUAL_LOCK.release()
+
+class TestPayIndividual(unittest.IsolatedAsyncioTestCase):
+    def test_raises_if_multiple_tasks_try_to_pay_individuals(self) -> None:
+        with seamstress.run_task(PayIndividualLockHogger()):
+            with self.assertRaises(pay_individual.AlreadyPayingIndividual):
+                pay_individual.pay_individual(...)
+
+~~~
+
 ## Contributing to `seamstress`
 
 ### Running tests
@@ -324,18 +382,7 @@ too!
 
 ### Flesh Out README More
 
-We should include an API reference for `run_thread` and `ThreadConfig`.
-
-### Extend to Support Hogging Async Locks
-
-I haven't got my head around this one quite as much. For a very basic sketch,
-it'd similarly have a helper and a convenience class:
-- `run_task`
-- `TaskConfig`
-
-Seems that python does have an async version of `Event` (see
-[docs](https://docs.python.org/3/library/asyncio-sync.html#asyncio.Event)), so this is 
-likely doable!
+We should include an API reference.
 
 ### Add github actions
 
