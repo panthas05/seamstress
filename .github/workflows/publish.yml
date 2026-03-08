@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
+      url: https://pypi.org/p/seamstress/
     permissions:
       id-token: write
       contents: read
@@ -26,5 +27,5 @@ jobs:
         run: uv run python3 -m unittest
       - name: Build
         run: uv build
-      - name: Publish
-        run: uv publish -t ${{ secrets.PYPI_TOKEN }}
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
