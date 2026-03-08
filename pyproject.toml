@@ -1,6 +1,6 @@
 [project]
 name = "seamstress"
-version = "0.1.0"
+version = "1.0.0"
 authors = [
     { name="Peter Thomas" }
 ]
@@ -10,8 +10,7 @@ requires-python = ">=3.9"
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
-    # TODO: bump to stable once process and async locks are supported
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
 ]
 license = "MIT"
