@@ -2,9 +2,10 @@ import contextlib
 import enum
 import multiprocessing
 import threading
-import types
 import typing
 from multiprocessing.synchronize import Event as MultiprocessingEvent
+
+from seamstress import utils
 
 Event = threading.Event | MultiprocessingEvent
 Executor = threading.Thread | multiprocessing.Process
@@ -83,35 +84,6 @@ class ProcessStillAlive(Exception):
     pass
 
 
-def _get_context_manager_identifier(
-    context_manager: typing.ContextManager[None],
-) -> str:
-    """
-    Attempts to extract a helpful identifier from `context_manager` to be used in
-    exception messages.
-    """
-
-    name_attr: str | None = getattr(context_manager, "__name__", None)
-    if name_attr:
-        return name_attr
-
-    func_attr: types.FunctionType | None = getattr(context_manager, "func", None)
-    if func_attr:
-        func_name_attr: str | None = getattr(func_attr, "__name__", None)
-        if func_name_attr:
-            return func_name_attr
-
-    gen_attr: types.GeneratorType[typing.Any] | None = getattr(
-        context_manager, "gen", None
-    )
-    if gen_attr:
-        gen_name_attr: str | None = getattr(gen_attr, "__name__", None)
-        if gen_name_attr:
-            return gen_name_attr
-
-    return "<unknown>"
-
-
 def _raise_executor_still_alive(
     context_manager: typing.ContextManager[None],
     *,
@@ -127,7 +99,9 @@ def _raise_executor_still_alive(
         typing.assert_never(executor_type)
 
     alive_time_description = "1 second" if timeout == 1.0 else f"{timeout} seconds"
-    context_manager_identifier = _get_context_manager_identifier(context_manager)
+    context_manager_identifier = (
+        utils.context_managers.get_identifier_for_context_manager(context_manager)
+    )
     raise exception_class(
         f'The {executor_type} running "{context_manager_identifier}" was still alive after '
         f"{alive_time_description}. If this doesn't indicate a bug, consider "
