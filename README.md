@@ -517,6 +517,18 @@ too!
 
 ## Avenues for Improvement
 
-### Flesh Out README More
+### Propagate timeout exceptions better
 
-We should include an API reference.
+Currently, timeouts due to context managers taking too long to complete are
+raised in the created thread/process/task rather than in the thread/process/task
+that calls `run_thread`/`run_process`/`run_task`. This causes tests to hang,
+rather than immediately fail/give helpful feedback to the end user.
+
+Propagating timeout exceptions back to the context in which `run_*` was called,
+would lead to a much better developer experience.
+
+### Set up `pre-commit` (or similar) for local development
+
+Tests and type-checking are currently run on `main` in github. It'd be neat if
+they could be run on-commit too, using something like pre-commit (given they
+only take a few seconds at the moment).
