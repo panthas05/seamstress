@@ -476,10 +476,10 @@ class PayIndividualLockHogger(seamstress.TaskConfig):
         pay_individual.PAY_INDIVIDUAL_LOCK.release()
 
 class TestPayIndividual(unittest.IsolatedAsyncioTestCase):
-    def test_raises_if_multiple_tasks_try_to_pay_individuals(self) -> None:
-        with seamstress.run_task(PayIndividualLockHogger()):
+    async def test_raises_if_multiple_tasks_try_to_pay_individuals(self) -> None:
+        async with seamstress.run_task(PayIndividualLockHogger()):
             with self.assertRaises(pay_individual.AlreadyPayingIndividual):
-                pay_individual.pay_individual(...)
+                await pay_individual.pay_individual(...)
 
 ~~~
 
