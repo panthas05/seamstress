@@ -14,6 +14,8 @@ Then, back in your test, you can run other code whose behaviour might be
 affected by the state of this new thread/process/task, and make assertions about
 how the code behaved.
 
+## api
+
 ## Examples
 
 ### A contested lock
@@ -383,8 +385,3 @@ too!
 ### Flesh Out README More
 
 We should include an API reference.
-
-### Add github actions
-
-It'd be nice to have github actions to run both the test suite and `mypy` on `main` and 
-pull requests.
