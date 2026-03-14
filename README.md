@@ -14,7 +14,142 @@ Then, back in your test, you can run other code whose behaviour might be
 affected by the state of this new thread/process/task, and make assertions about
 how the code behaved.
 
-## api
+## API Reference
+
+### Threading utilities
+
+#### `run_thead`
+
+A context manager that creates and runs a new thread. Accepts a context manager
+whose context is entered in the new thead, after which control is yielded back
+to the calling context. Will block on entry until the `__enter__` method of the
+passed context manager has finished executing in the created thread. Similarly,
+will block on exit until the `__exit__` method of the passed context manager has
+finished executing in the created thread, unless a timeout is exceeded, in which
+case an exception will be raised.
+
+##### Arguments
+
+Takes the following parameters:
+- `context_manager: typing.ContextManager[None]` - a context manager,
+  defining the code to be to be run in the new thread.
+- `timeout: float | None` - a timeout, in seconds, for the thread to complete
+  executing after the context created by entering `context_manager` is exited.
+  Defaults to one second if not specified. If the thread does not complete its
+  execution within the passed timeout, `ThreadStillAlive` will be raised within
+  the created thread (not the main thread).
+
+##### Signature
+
+~~~python
+def run_thread(
+    context_manager: typing.ContextManager[None],
+    *,
+    timeout: float | None = None,
+) -> typing.ContextManager[None]:
+    ...
+~~~
+
+#### `ThreadConfig`
+
+A convenience class, for use with `run_thread`. An abstract base class,
+subclasses of which must implement two methods:
+- `set_up_thread` run on entering `run_thread`'s context
+- `tear_down_thread` run on exiting `run_thread`'s context
+
+Instances of the subclass of `ThreadConfig` can then be passed to the
+`context_manager` argument of `run_thread`.
+
+### Multiprocessing utilities
+
+#### `run_process`
+
+A context manager that creates and runs a new process. Accepts a context manager
+whose context is entered in the new process, after which control is yielded back
+to the calling context. Will block on entry until the `__enter__` method of the
+passed context manager has finished executing in the created process. Similarly,
+will block on exit until the `__exit__` method of the passed context manager has
+finished executing in the created process, unless a timeout is exceeded, in
+which case an exception will be raised.
+
+##### Arguments
+
+Takes the following parameters:
+- `context_manager: typing.ContextManager[None]` - a context manager,
+  defining the code to be to be run in a new process.
+- `timeout: float | None` - a timeout in seconds for the process to complete
+  executing, after the context created by entering `context_manager` is exited.
+  Defaults to one second if not specified. If the process does not complete its
+  execution within the passed timeout, `ProcessStillAlive` will be raised within
+  the created process (not the main process).
+
+##### Signature
+
+~~~python
+def run_process(
+    context_manager: typing.ContextManager[None],
+    *,
+    timeout: float | None = None,
+) -> typing.ContextManager[None]:
+    ...
+~~~
+
+#### `ProcessConfig`
+
+A convenience class, for use with `run_process`. An abstract base class,
+subclasses of which must implement two methods:
+- `set_up_process` run on entering `run_process`'s context
+- `tear_down_process` run on exiting `run_process`'s context
+
+Instances of the subclass of `ProcessConfig` can then be passed to the
+`context_manager` argument of `run_process`.
+
+### Async utilities
+
+#### `run_task`
+
+A context manager that creates and runs a new task. Accepts an async context
+manager whose context is entered in the new task, after which control is yielded
+back to the calling context. On entry, the `__aenter__` method of the passed
+async context manager will be run to completion before the code that called
+`run_task` cancontinue executing. Similarly, on exit, the `__aexit__` method of the
+passed async context manager will be run to completion, unless a timeout is
+exceeded, in which case an exception will be raised.
+
+Must be called from within a running event loop, else `NoRunningEventLoop` will
+be raised. 
+
+##### Arguments
+
+Takes the following parameters:
+- `context_manager: typing.AsyncContextManager[None]` - a context manager,
+  defining the code to be to be run in a new task.
+- `timeout: float | None` - a timeout in seconds for the task to complete
+  executing, after the context created by entering `context_manager` is exited.
+  Defaults to one second if not specified. If the task does not complete its
+  execution within the passed timeout, `TaskStillExecuting` will be raised
+  within the created task (not the task that called `run_task`).
+
+##### Signature
+
+~~~python
+async def run_task(
+    context_manager: typing.AsyncContextManager[None],
+    *,
+    timeout: float | None = None,
+) -> typing.AsyncIterator[None]:
+    ...
+~~~
+
+#### `TaskConfig`
+
+A convenience class, for use with `run_task`. An abstract base class,
+subclasses of which must implement two methods:
+- `set_up_task` run on entering `run_task`'s context
+- `tear_down_task` run on exiting `run_task`'s context
+
+Instances of the subclass of `TaskConfig` can then be passed to the
+`context_manager` argument of `run_task`.
 
 ## Examples
 
