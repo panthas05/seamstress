@@ -2,6 +2,7 @@ import contextlib
 import multiprocessing
 import threading
 import time
+import traceback
 import typing
 import unittest
 from multiprocessing.synchronize import Lock as MultiprocessingLock
@@ -43,6 +44,22 @@ def build_slow_release_threading_lock_acquirer(
             time.sleep(1.5)
 
     return lock_acquirer()
+
+
+class PropagatedException(Exception):
+    pass
+
+
+@contextlib.contextmanager
+def raise_exception_on_entry() -> typing.Iterator[None]:
+    raise PropagatedException
+    yield
+
+
+@contextlib.contextmanager
+def raise_exception_on_exit() -> typing.Iterator[None]:
+    yield
+    raise PropagatedException
 
 
 class TestRunThread(unittest.TestCase):
@@ -124,6 +141,50 @@ class TestRunThread(unittest.TestCase):
                 timeout=passed_timeout,
             ):
                 pass
+
+    def test_propagates_exception_raised_on_entry_back_to_main_thread(self) -> None:
+        """
+        Verify that if the context manager passed to `run_thread` raises an exception
+        before yielding, this exception is raised back in the main thread.
+        """
+        with self.assertRaises(PropagatedException) as cm:
+            with seamstress.run_thread(raise_exception_on_entry()):
+                pass
+
+        printed_output = "\n".join(
+            traceback.format_exception(
+                type(cm.exception),
+                cm.exception,
+                cm.exception.__traceback__,
+            )
+        )
+
+        assert (
+            'Raised by "raise_exception_on_entry" passed to `seamstress.run_thread`.'
+            in printed_output
+        )
+
+    def test_propagates_exception_raised_on_exit_back_to_main_thread(self) -> None:
+        """
+        Verify that if the context manager passed to `run_thread` raises an exception
+        after it's yield statement, this exception is raised back in the main thread.
+        """
+        with self.assertRaises(PropagatedException) as cm:
+            with seamstress.run_thread(raise_exception_on_exit()):
+                pass
+
+        printed_output = "\n".join(
+            traceback.format_exception(
+                type(cm.exception),
+                cm.exception,
+                cm.exception.__traceback__,
+            )
+        )
+
+        assert (
+            'Raised by "raise_exception_on_exit" passed to `seamstress.run_thread`.'
+            in printed_output
+        )
 
 
 def build_process_lock_acquirer(

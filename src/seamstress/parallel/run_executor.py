@@ -7,8 +7,10 @@ from multiprocessing.synchronize import Event as MultiprocessingEvent
 
 from seamstress import utils
 
+from . import _custom_executors
+
 Event = threading.Event | MultiprocessingEvent
-Executor = threading.Thread | multiprocessing.Process
+Executor = _custom_executors.PropagatingThread | multiprocessing.Process
 
 
 class ExecutorType(enum.StrEnum):
@@ -22,9 +24,14 @@ def _enter_context_then_wait(
     context_entered_event: Event,
     exit_context_event: Event,
 ) -> None:
-    with context_manager:
-        context_entered_event.set()
-        exit_context_event.wait()
+    try:
+        with context_manager:
+            context_entered_event.set()
+            exit_context_event.wait()
+    except BaseException as e:
+        if not context_entered_event.is_set():
+            context_entered_event.set()
+        raise e
 
 
 def _run_context_manager_in_executor(
@@ -45,7 +52,7 @@ def _run_context_manager_in_executor(
         context_entered_event = threading.Event()
         exit_context_event = threading.Event()
 
-        executor_class = threading.Thread
+        executor_class = _custom_executors.PropagatingThread
     elif executor_type == ExecutorType.PROCESS:
         context_entered_event = multiprocessing.Event()
         exit_context_event = multiprocessing.Event()
@@ -126,7 +133,17 @@ def _run_executor(
     exit_context_event.set()
 
     timeout = timeout or DEFAULT_THREAD_JOIN_TIMEOUT
-    executor.join(timeout=timeout)
+    try:
+        executor.join(timeout=timeout)
+    except BaseException as e:
+        context_manager_identifier = (
+            utils.context_managers.get_identifier_for_context_manager(context_manager)
+        )
+        e.add_note(
+            f'Raised by "{context_manager_identifier}" passed to `seamstress.run_{executor_type.value}`.'
+        )
+        raise e
+
     if executor.is_alive():
         _raise_executor_still_alive(
             context_manager,
