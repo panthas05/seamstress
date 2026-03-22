@@ -107,6 +107,7 @@ def run_process(
     context_manager: typing.ContextManager[None],
     *,
     timeout: float | None = None,
+    shared_memory_size: int | None = None,
 ) -> typing.ContextManager[None]:
     ...
 ~~~
