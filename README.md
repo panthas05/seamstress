@@ -505,6 +505,20 @@ class TestPayIndividual(unittest.IsolatedAsyncioTestCase):
 
 ## Contributing to `seamstress`
 
+### Getting started
+
+Install the project's dependencies (dev only), and configure pre-commit hooks:
+
+~~~bash
+uv venv
+source .venv/bin/active
+uv sync
+prek install
+~~~
+
+You may want to install `ruff`, and configure your IDE to run it to format on
+save too.
+
 ### Running tests
 
 Tests can be run from within the virtual environment using:
@@ -534,11 +548,3 @@ Please ensure all PRs have appropriate test coverage.
 
 A seamstress stitches threads together for you, which is what this package does
 too!
-
-## Avenues for Improvement
-
-### Set up `pre-commit` (or similar) for local development
-
-Tests and type-checking are currently run on `main` in github. It'd be neat if
-they could be run on-commit too, using something like pre-commit (given they
-only take a few seconds at the moment).
