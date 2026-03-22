@@ -28,6 +28,9 @@ will block on exit until the `__exit__` method of the passed context manager has
 finished executing in the created thread, unless a timeout is exceeded, in which
 case an exception will be raised.
 
+Any exception raised during the execution of `context_manager` will be caught
+and re-raised in the main thread (i.e. the thread in which the test is running).
+
 ##### Arguments
 
 Takes the following parameters:
@@ -72,6 +75,10 @@ will block on exit until the `__exit__` method of the passed context manager has
 finished executing in the created process, unless a timeout is exceeded, in
 which case an exception will be raised.
 
+Any exception raised during the execution of `context_manager` will be caught
+and re-raised in the main process (i.e. the process in which the test is
+running).
+
 ##### Arguments
 
 Takes the following parameters:
@@ -82,6 +89,16 @@ Takes the following parameters:
   Defaults to one second if not specified. If the process does not complete its
   execution within the passed timeout, `ProcessStillAlive` will be raised within
   the created process (not the main process).
+- `shared_memory_size: int | None` - you should not usually need to provide this
+  value. In order to propagate exceptions raised in the created process back to
+  the main process, `seamstress` needs to create some shared memory. Sometimes,
+  this memory isn't large enough to hold the raised exception, in which case
+  `seamstress` will raise `ExceptionTooLargeToPropagate` in the main process. In
+  that exception's error message, it will tell you the value it needs you to
+  pass to this argument for the exception to be successfully propagated. This
+  should somewhat be considered an implementation detail, but if you want more
+  information, look at `seamstress/parallel/_custom_executors.py`, and the tests
+  for `run_process`.
 
 ##### Signature
 
@@ -516,16 +533,6 @@ A seamstress stitches threads together for you, which is what this package does
 too!
 
 ## Avenues for Improvement
-
-### Propagate timeout exceptions better
-
-Currently, timeouts due to context managers taking too long to complete are
-raised in the created thread/process/task rather than in the thread/process/task
-that calls `run_thread`/`run_process`/`run_task`. This causes tests to hang,
-rather than immediately fail/give helpful feedback to the end user.
-
-Propagating timeout exceptions back to the context in which `run_*` was called,
-would lead to a much better developer experience.
 
 ### Set up `pre-commit` (or similar) for local development
 
