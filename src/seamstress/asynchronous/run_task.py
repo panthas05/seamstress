@@ -11,9 +11,14 @@ async def _enter_context_then_wait(
     context_entered_event: asyncio.Event,
     exit_context_event: asyncio.Event,
 ) -> None:
-    async with context_manager:
-        context_entered_event.set()
-        await exit_context_event.wait()
+    try:
+        async with context_manager:
+            context_entered_event.set()
+            await exit_context_event.wait()
+    except BaseException as e:
+        if not context_entered_event.is_set():
+            context_entered_event.set()
+        raise e
 
 
 class NoRunningEventLoop(Exception):
@@ -75,7 +80,19 @@ async def run_task(
 
     try:
         async with asyncio.timeout(timeout):
-            await task
+            try:
+                await task
+            except BaseException as e:
+                context_manager_identifier = (
+                    utils.context_managers.get_identifier_for_context_manager(
+                        context_manager
+                    )
+                )
+                e.add_note(
+                    f'Raised by "{context_manager_identifier}" passed to `seamstress.run_task`.'
+                )
+                raise e
+
     except asyncio.TimeoutError as e:
         alive_time_description = "1 second" if timeout == 1.0 else f"{timeout} seconds"
         context_manager_identifier = (
