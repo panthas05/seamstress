@@ -32,4 +32,5 @@ strict = true
 [dependency-groups]
 dev = [
     "mypy>=1.19.0",
+    "prek>=0.3.6",
 ]
