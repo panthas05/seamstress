@@ -1,5 +1,6 @@
 import asyncio
 import contextlib
+import traceback
 import typing
 import unittest
 
@@ -30,6 +31,22 @@ def build_slow_release_async_lock_acquirer(
             await asyncio.sleep(1.5)
 
     return async_lock_acquirer()
+
+
+class PropagatedException(Exception):
+    pass
+
+
+@contextlib.asynccontextmanager
+async def raise_exception_on_entry() -> typing.AsyncIterator[None]:
+    raise PropagatedException
+    yield
+
+
+@contextlib.asynccontextmanager
+async def raise_exception_on_exit() -> typing.AsyncIterator[None]:
+    yield
+    raise PropagatedException
 
 
 class TestAsyncHogLock(unittest.IsolatedAsyncioTestCase):
@@ -95,3 +112,47 @@ class TestAsyncHogLock(unittest.IsolatedAsyncioTestCase):
                 timeout=passed_timeout,
             ):
                 pass
+
+    async def test_propagates_exception_raised_on_context_manager_entry_back_to_test(
+        self,
+    ) -> None:
+        with self.assertRaises(PropagatedException) as cm:
+            async with seamstress.run_task(raise_exception_on_entry()):
+                pass
+
+        # verify that the printed traceback indicated that the exception had been
+        # propagated from the passed context manager
+        printed_output = "\n".join(
+            traceback.format_exception(
+                type(cm.exception),
+                cm.exception,
+                cm.exception.__traceback__,
+            )
+        )
+
+        assert (
+            'Raised by "raise_exception_on_entry" passed to `seamstress.run_task`.'
+            in printed_output
+        )
+
+    async def test_propagates_exception_raised_on_context_manager_exit_back_to_test(
+        self,
+    ) -> None:
+        with self.assertRaises(PropagatedException) as cm:
+            async with seamstress.run_task(raise_exception_on_exit()):
+                pass
+
+        # verify that the printed traceback indicated that the exception had been
+        # propagated from the passed context manager
+        printed_output = "\n".join(
+            traceback.format_exception(
+                type(cm.exception),
+                cm.exception,
+                cm.exception.__traceback__,
+            )
+        )
+
+        assert (
+            'Raised by "raise_exception_on_exit" passed to `seamstress.run_task`.'
+            in printed_output
+        )
