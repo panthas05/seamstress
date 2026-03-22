@@ -1,0 +1,35 @@
+default_language_version = { python = "3.13" }
+
+[[repos]]
+repo = "https://github.com/pre-commit/pre-commit-hooks"
+rev = "v6.0.0"
+hooks = [
+  { id = "check-toml" },
+  { id = "trailing-whitespace" },
+  { id = "check-case-conflict" },
+  { id = "end-of-file-fixer" },
+  { id = "fix-byte-order-marker" },
+  { id = "mixed-line-ending" },
+  { id = "check-symlinks" },
+  { id = "detect-private-key" },
+  { id = "no-commit-to-branch" },
+  { id = "check-executables-have-shebangs" }
+]
+
+[[repos]]
+repo = "https://github.com/astral-sh/ruff-pre-commit"
+rev = "v0.15.7"
+hooks = [
+  { id = "ruff-check" },
+  { id = "ruff-format" }
+]
+
+[[repos]]
+repo = "https://github.com/pre-commit/mirrors-mypy"
+rev = "a66e98d"
+hooks = [
+  {
+    id = "mypy",
+    args = ["--strict"]
+  }
+]
