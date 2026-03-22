@@ -400,18 +400,20 @@ def build_pay_individual_lock_hogger(
     # opened in a different thread, then yields for the test to resume operation
     @contextlib.contextmanager
     def pay_individual_lock_hogger():
-        with transaction.atomic():
-            pglock.advisory(
-                pay_individual._get_advisory_lock_name_for_pay_individual(
-                    individual=individual,
-                ),
-                xact=True,
-                timeout=0,
-            ).acquire()
-            yield
-        # close old connections, just to be safe/make sure our extra thread doesn't lead
-        # to dangling connections
-        close_old_connections()
+        try:
+            with transaction.atomic():
+                pglock.advisory(
+                    pay_individual._get_advisory_lock_name_for_pay_individual(
+                        individual=individual,
+                    ),
+                    xact=True,
+                    timeout=0,
+                ).acquire()
+                yield
+        finally:
+            # close old connections, just to be safe/make sure our extra thread doesn't lead
+            # to dangling connections
+            close_old_connections()
 
     return pay_individual_lock_hogger()
 
