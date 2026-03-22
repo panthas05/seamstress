@@ -135,7 +135,7 @@ passed async context manager will be run to completion, unless a timeout is
 exceeded, in which case an exception will be raised.
 
 Must be called from within a running event loop, else `NoRunningEventLoop` will
-be raised. 
+be raised.
 
 ##### Arguments
 
@@ -193,12 +193,12 @@ PAY_INDIVIDUAL_LOCK = threading.Lock()
 
 def pay_individual(...) -> None:
     lock_acquired = PAY_INDIVIDUAL_LOCK.acquire(blocking=False)
-    
+
     if not lock_acquired:
         raise AlreadyPayingIndividual
-    
+
     _pay_individual(...)
-    
+
     PAY_INDIVIDUAL_LOCK.release()
 
 ~~~
@@ -216,13 +216,13 @@ import pay_individual
 
 class PayIndividualLockHogger(seamstress.ThreadConfig):
     """
-    Config for a thread that hogs `PAY_INDIVIDUAL_LOCK`, acquiring it for the 
+    Config for a thread that hogs `PAY_INDIVIDUAL_LOCK`, acquiring it for the
     duration of `seamstress.run_thread`'s context.
     """
 
     def set_up_thread(self) -> None:
         pay_individual.PAY_INDIVIDUAL_LOCK.acquire()
-    
+
     def tear_down_thread(self) -> None:
         pay_individual.PAY_INDIVIDUAL_LOCK.release()
 
@@ -235,19 +235,19 @@ class TestPayIndividual(unittest.TestCase):
 ~~~
 
 Let's break down what happened in the above.
-- First, we defined a subclass of `seamstress.ThreadConfig` called 
+- First, we defined a subclass of `seamstress.ThreadConfig` called
     `PayIndividualLockHogger` (`ThreadConfig` is a convenience class that
     `seamstress` provides, for ease of setting up threads in a certain state).
-- Then, we passed an instance of `PayIndividualLockHogger` to 
+- Then, we passed an instance of `PayIndividualLockHogger` to
   `seamstress.run_thread`, whilst entering its context. Under the bonnet,
   `seamstress` created a new thread that ran
   `PayIndividualLockHogger.set_up_thread` (and so acquired
   `PAY_INDIVIDUAL_LOCK`), before letting the test resume execution.
 - We then entered unittest's `assertRaises`
     [helper](https://docs.python.org/3/library/unittest.html#unittest.TestCase.assertRaises),
-    so that our test can verify that `pay_individual` raises if called whilst 
+    so that our test can verify that `pay_individual` raises if called whilst
     `PAY_INDIVIDUAL_LOCK` is acquired.
-- From within `assertRaises`, we call `pay_individual`, which raises 
+- From within `assertRaises`, we call `pay_individual`, which raises
     `AlreadyPayingIndividual` because `PAY_INDIVIDUAL_LOCK` has been acquired
     from the thread that seamstress created. So we exit the `assertRaises` block
     without the test failing.
@@ -292,7 +292,7 @@ import pay_individual
 class PayIndividualLockHogger:
     def __enter__(self) -> None:
         pay_individual.PAY_INDIVIDUAL_LOCK.acquire()
-    
+
     def __exit__(
         self,
         exception_type: type[BaseException] | None,
@@ -363,10 +363,10 @@ def pay_individual(
             xact=True,
             timeout=0,
         ).acquire()
-        
+
         if not lock_acquired:
             raise AlreadyPayingIndividual
-        
+
         _pay_individual(...)
 
 ~~~
@@ -420,27 +420,27 @@ def build_pay_individual_lock_hogger(
 class TestPayIndividual(TestCase):
     def test_raises_individual_already_being_paid(self) -> None:
         individual = models.Individual.objects.create(...)
-    
+
         pay_individual_lock_hogger = build_pay_individual_lock_hogger(
             individual=individual
         )
-    
+
         with seamstress.run_thread(pay_individual_lock_hogger):
             with self.assertRaises(pay_individual.AlreadyPayingIndividual):
                 pay_individual.pay_individual(...)
 
 ~~~
 
-Interestingly, this means you can test locking behaviours without having to use 
-`TransactionTestCase` (because the transaction that acquires the lock is opened in a 
+Interestingly, this means you can test locking behaviours without having to use
+`TransactionTestCase` (because the transaction that acquires the lock is opened in a
 different thread to the one that is running the test).
 
-This example was the real-world situation that prompted the writing of this package. 
+This example was the real-world situation that prompted the writing of this package.
 
 The above code can be tweaked pretty minimally for wherever you need to test
 code that behaves differently depending on whether or not a lock is acquired.
 For example, you could use it to test code that uses:
-- Advisory locks in databases other than postgres (i.e. not using `pglock` as in the 
+- Advisory locks in databases other than postgres (i.e. not using `pglock` as in the
   above example)
 - UNIX file/io locks, using `fcntl`
 - A distributed redis lock, using `redis.lock.Lock`
@@ -471,14 +471,14 @@ async def pay_individual(...) -> None:
             await PAY_INDIVIDUAL_LOCK.acquire()
     except asyncio.TimeoutError as e:
         raise AlreadyPayingIndividual from e
-    
+
     await _pay_individual(...)
-    
+
     PAY_INDIVIDUAL_LOCK.release()
 
 ~~~
 
-Using `run_task` and `TaskConfig` to test its behaviour may look something 
+Using `run_task` and `TaskConfig` to test its behaviour may look something
 like:
 ~~~python
 # inside test_pay_individual.py
@@ -491,7 +491,7 @@ import pay_individual
 class PayIndividualLockHogger(seamstress.TaskConfig):
     async def set_up_task(self) -> None:
         await pay_individual.PAY_INDIVIDUAL_LOCK.acquire()
-    
+
     async def tear_down_task(self) -> None:
         pay_individual.PAY_INDIVIDUAL_LOCK.release()
 
