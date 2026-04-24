@@ -17,19 +17,37 @@ hooks = [
 ]
 
 [[repos]]
-repo = "https://github.com/astral-sh/ruff-pre-commit"
-rev = "v0.15.7"
+repo = "local"
 hooks = [
-  { id = "ruff-check" },
-  { id = "ruff-format" }
+  {
+      id = "ruff-check",
+      name = "Check code with ruff",
+      entry = "uv run ruff check",
+      args = ["--fix"],
+      types = ["python",],
+      language = "system",
+      always_run = true,
+  },
+  {
+      id = "ruff-check",
+      name = "Format code with ruff",
+      entry = "uv run ruff format",
+      types = ["python",],
+      language = "system",
+      always_run = true,
+  },
 ]
 
 [[repos]]
-repo = "https://github.com/pre-commit/mirrors-mypy"
-rev = "a66e98d"
+repo = "local"
 hooks = [
   {
-    id = "mypy",
-    args = ["--strict"]
+    id = "type-check",
+    name = "Type check code",
+    entry = "uv run mypy .",
+    args = ["--strict"],
+    types = ["python",],
+    language = "system",
+    always_run = true,
   }
 ]
