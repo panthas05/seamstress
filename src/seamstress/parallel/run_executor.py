@@ -52,7 +52,7 @@ def _run_context_manager_in_executor(
     if executor_type == ExecutorType.THREAD:
         if shared_memory_size is not None:
             raise ValueError(
-                "`shared_memory_size` argument should not be used with a thread executor"
+                "`shared_memory_size` argument should not be used with a thread executor",
             )
 
         context_entered_event = threading.Event()
@@ -111,7 +111,7 @@ def _raise_executor_still_alive(
     executor_type: ExecutorType,
     timeout: float,
 ) -> None:
-    exception_class: type[ThreadStillAlive] | type[ProcessStillAlive]
+    exception_class: type[ThreadStillAlive | ProcessStillAlive]
     if executor_type == ExecutorType.THREAD:
         exception_class = ThreadStillAlive
     elif executor_type == ExecutorType.PROCESS:
@@ -126,7 +126,7 @@ def _raise_executor_still_alive(
     raise exception_class(
         f'The {executor_type} running "{context_manager_identifier}" was still alive after '
         f"{alive_time_description}. If this doesn't indicate a bug, consider "
-        f"passing a longer timeout value to `run_{executor_type}`."
+        f"passing a longer timeout value to `run_{executor_type}`.",
     )
 
 
@@ -157,7 +157,7 @@ def _run_executor(
         )
         if not isinstance(e, _custom_executors.ExceptionTooLargeToPropagate):
             e.add_note(
-                f'Raised by "{context_manager_identifier}" passed to `seamstress.run_{executor_type.value}`.'
+                f'Raised by "{context_manager_identifier}" passed to `seamstress.run_{executor_type.value}`.',
             )
         raise e
 

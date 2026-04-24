@@ -37,7 +37,7 @@ async def _run_context_manager_in_task(
     except RuntimeError:
         raise NoRunningEventLoop(
             "Please ensure that `async_hog_lock` is called from within an async task, "
-            "so that it has access to a running event loop."
+            "so that it has access to a running event loop.",
         )
 
     task = event_loop.create_task(
@@ -46,7 +46,7 @@ async def _run_context_manager_in_task(
             context_entered_event=context_entered_event,
             exit_context_event=exit_context_event,
         ),
-        name=f"Async hog lock: {repr(context_manager)}",
+        name=f"Async hog lock: {context_manager!r}",
     )
 
     # wait until `task` signals that it has acquired the lock
@@ -85,11 +85,11 @@ async def run_task(
             except BaseException as e:
                 context_manager_identifier = (
                     utils.context_managers.get_identifier_for_context_manager(
-                        context_manager
+                        context_manager,
                     )
                 )
                 e.add_note(
-                    f'Raised by "{context_manager_identifier}" passed to `seamstress.run_task`.'
+                    f'Raised by "{context_manager_identifier}" passed to `seamstress.run_task`.',
                 )
                 raise e
 
@@ -101,5 +101,5 @@ async def run_task(
         raise TaskStillExecuting(
             f'The task running "{context_manager_identifier}" was still executing after '
             f"{alive_time_description}. If this doesn't indicate a bug, consider "
-            "passing a longer timeout value to `run_task`."
+            "passing a longer timeout value to `run_task`.",
         ) from e

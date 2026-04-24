@@ -112,7 +112,7 @@ class TestRunThread(unittest.TestCase):
 
     def test_raises_if_thread_still_alive_after_timeout(self) -> None:
         slow_release_lock_acquirer = build_slow_release_threading_lock_acquirer(
-            lock=threading.Lock()
+            lock=threading.Lock(),
         )
 
         with self.assertRaises(ThreadStillAlive):
@@ -124,7 +124,7 @@ class TestRunThread(unittest.TestCase):
 
     def test_thread_still_alive_exception_message(self) -> None:
         slow_release_lock_acquirer = build_slow_release_threading_lock_acquirer(
-            lock=threading.Lock()
+            lock=threading.Lock(),
         )
 
         passed_timeout = 0.01
@@ -142,7 +142,7 @@ class TestRunThread(unittest.TestCase):
 
     def test_thread_still_alive_exception_message_with_one_second_timeout(self) -> None:
         slow_release_lock_acquirer = build_slow_release_threading_lock_acquirer(
-            lock=threading.Lock()
+            lock=threading.Lock(),
         )
 
         passed_timeout = 1.0
@@ -174,7 +174,7 @@ class TestRunThread(unittest.TestCase):
                 type(cm.exception),
                 cm.exception,
                 cm.exception.__traceback__,
-            )
+            ),
         )
 
         assert (
@@ -196,7 +196,7 @@ class TestRunThread(unittest.TestCase):
                 type(cm.exception),
                 cm.exception,
                 cm.exception.__traceback__,
-            )
+            ),
         )
 
         assert (
@@ -280,7 +280,6 @@ class TestRunProcess(unittest.TestCase):
         """
         See docstring in TestRunProcess
         """
-
         lock_acquirer = build_process_lock_acquirer(lock=self.lock)
 
         # safety check
@@ -302,7 +301,7 @@ class TestRunProcess(unittest.TestCase):
 
     def test_raises_if_process_still_alive_after_timeout(self) -> None:
         slow_release_lock_acquirer = build_slow_release_process_lock_acquirer(
-            lock=self.lock
+            lock=self.lock,
         )
 
         with self.assertRaises(ProcessStillAlive):
@@ -314,7 +313,7 @@ class TestRunProcess(unittest.TestCase):
 
     def test_process_still_alive_exception_message(self) -> None:
         slow_release_lock_acquirer = build_slow_release_process_lock_acquirer(
-            lock=self.lock
+            lock=self.lock,
         )
 
         passed_timeout = 0.01
@@ -334,7 +333,7 @@ class TestRunProcess(unittest.TestCase):
         self,
     ) -> None:
         slow_release_lock_acquirer = build_slow_release_process_lock_acquirer(
-            lock=self.lock
+            lock=self.lock,
         )
 
         passed_timeout = 1.0
@@ -369,7 +368,7 @@ class TestRunProcess(unittest.TestCase):
                 type(cm.exception),
                 cm.exception,
                 cm.exception.__traceback__,
-            )
+            ),
         )
 
         assert (
@@ -392,7 +391,7 @@ class TestRunProcess(unittest.TestCase):
                 type(cm.exception),
                 cm.exception,
                 cm.exception.__traceback__,
-            )
+            ),
         )
 
         assert (
@@ -408,7 +407,7 @@ class TestRunProcess(unittest.TestCase):
         suggestion_match = re.search(r"shared_memory_size=(\d+)", printed_output)
         if not suggestion_match:
             self.fail(
-                "No suggestion for shared memory size in raised exception's output"
+                "No suggestion for shared memory size in raised exception's output",
             )
         return int(suggestion_match.group(1))
 
@@ -437,7 +436,7 @@ class TestRunProcess(unittest.TestCase):
                 type(cm.exception),
                 cm.exception,
                 cm.exception.__traceback__,
-            )
+            ),
         )
 
         with self.subTest("The exception's traceback was sufficiently helpful"):
@@ -448,13 +447,13 @@ class TestRunProcess(unittest.TestCase):
 
         new_shared_memory_size = (
             self._extract_suggested_shared_memory_size_from_printed_exception_output(
-                printed_output=printed_output
+                printed_output=printed_output,
             )
         )
 
         with self.subTest(
             "Using the suggested shared memory size successfully propagates the large "
-            "exception"
+            "exception",
         ):
             with self.assertRaises(VeryLargeException):
                 with seamstress.run_process(
@@ -488,7 +487,7 @@ class TestRunProcess(unittest.TestCase):
                 type(cm.exception),
                 cm.exception,
                 cm.exception.__traceback__,
-            )
+            ),
         )
 
         with self.subTest("The exception's traceback was sufficiently helpful"):
@@ -499,13 +498,13 @@ class TestRunProcess(unittest.TestCase):
 
         new_shared_memory_size = (
             self._extract_suggested_shared_memory_size_from_printed_exception_output(
-                printed_output=printed_output
+                printed_output=printed_output,
             )
         )
 
         with self.subTest(
             "Using the suggested shared memory size successfully propagates the large "
-            "exception"
+            "exception",
         ):
             with self.assertRaises(VeryLargeException):
                 with seamstress.run_process(
