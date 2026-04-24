@@ -2,7 +2,7 @@ default_language_version = { python = "3.13" }
 
 [[repos]]
 repo = "https://github.com/pre-commit/pre-commit-hooks"
-rev = "v6.0.0"
+rev = "b89c5eef3ba3a74ecd506d968e63a8b80f697abf"
 hooks = [
   { id = "check-toml" },
   { id = "trailing-whitespace" },
