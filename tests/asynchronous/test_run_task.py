@@ -76,7 +76,7 @@ class TestAsyncHogLock(unittest.IsolatedAsyncioTestCase):
         self,
     ) -> None:
         slow_release_lock_acquirer = build_slow_release_async_lock_acquirer(
-            lock=asyncio.Lock()
+            lock=asyncio.Lock(),
         )
 
         passed_timeout = 0.01
@@ -98,7 +98,7 @@ class TestAsyncHogLock(unittest.IsolatedAsyncioTestCase):
         self,
     ) -> None:
         slow_release_lock_acquirer = build_slow_release_async_lock_acquirer(
-            lock=asyncio.Lock()
+            lock=asyncio.Lock(),
         )
 
         passed_timeout = 1.0
@@ -127,7 +127,7 @@ class TestAsyncHogLock(unittest.IsolatedAsyncioTestCase):
                 type(cm.exception),
                 cm.exception,
                 cm.exception.__traceback__,
-            )
+            ),
         )
 
         assert (
@@ -149,7 +149,7 @@ class TestAsyncHogLock(unittest.IsolatedAsyncioTestCase):
                 type(cm.exception),
                 cm.exception,
                 cm.exception.__traceback__,
-            )
+            ),
         )
 
         assert (

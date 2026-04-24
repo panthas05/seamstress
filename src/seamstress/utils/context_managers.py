@@ -13,7 +13,6 @@ def get_identifier_for_context_manager(
     Attempts to extract a helpful identifier from `context_manager` to be used in
     exception messages.
     """
-
     name_attr: str | None = getattr(context_manager, "__name__", None)
     if name_attr:
         return name_attr
@@ -25,7 +24,9 @@ def get_identifier_for_context_manager(
             return func_name_attr
 
     gen_attr: types.GeneratorType[typing.Any] | None = getattr(
-        context_manager, "gen", None
+        context_manager,
+        "gen",
+        None,
     )
     if gen_attr:
         gen_name_attr: str | None = getattr(gen_attr, "__name__", None)

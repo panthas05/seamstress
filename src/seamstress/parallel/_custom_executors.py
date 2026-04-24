@@ -65,7 +65,7 @@ def _write_size_required_for_exception_to_shared_memory(
 
     shared_buffer = shared_memory_for_size_required.buf
     if shared_buffer is None:
-        raise SharedBufferForSizeRequiredWasNone()
+        raise SharedBufferForSizeRequiredWasNone
 
     exception_size_bytes_repr = pickled_exception_size.to_bytes(
         shared_buffer.nbytes,
@@ -97,13 +97,13 @@ def _write_exception_to_shared_memory(
 
     shared_buffer = shared_memory_for_exception.buf
     if shared_buffer is None:
-        raise SharedBufferForExceptionWasNone()
+        raise SharedBufferForExceptionWasNone
 
     if pickled_exception_size <= shared_buffer.nbytes:
         shared_buffer[:pickled_exception_size] = pickled_exception
         return WriteExceptionOutcome.SUCCESS
-    else:
-        return WriteExceptionOutcome.NOT_ENOUGH_MEMORY
+
+    return WriteExceptionOutcome.NOT_ENOUGH_MEMORY
 
 
 class ExceptionTooLargeToPropagate(Exception):
@@ -187,7 +187,7 @@ class PropagatingProcess(multiprocessing.Process):
         try:
             shared_buffer_holding_size_required = self._memory_for_size_required.buf
             if shared_buffer_holding_size_required is None:
-                raise SharedBufferForSizeRequiredWasNone()
+                raise SharedBufferForSizeRequiredWasNone
 
             size_required_buffer_bytes = shared_buffer_holding_size_required.tobytes()
             if not all(byte == 0 for byte in size_required_buffer_bytes):
@@ -201,14 +201,14 @@ class PropagatingProcess(multiprocessing.Process):
                     "spawned process back to the process in which it was called, but "
                     "it was too large. Please tweak the call to `run_process` in this "
                     "test to include the keyword argument "
-                    f"`shared_memory_size={size_required}`."
+                    f"`shared_memory_size={size_required}`.",
                 )
 
             shared_buffer_holding_exception = (
                 self._memory_for_exception_raised_by_target.buf
             )
             if shared_buffer_holding_exception is None:
-                raise SharedBufferForExceptionWasNone()
+                raise SharedBufferForExceptionWasNone
 
             exception_buffer_bytes = shared_buffer_holding_exception.tobytes()
             # if something has been written to the buffer, unpickle and raise the
