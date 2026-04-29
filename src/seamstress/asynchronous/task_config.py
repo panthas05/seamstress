@@ -1,5 +1,10 @@
+from __future__ import annotations
+
 import abc
-import types
+import typing
+
+if typing.TYPE_CHECKING:
+    import types
 
 
 class TaskConfig(abc.ABC):

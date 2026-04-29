@@ -49,7 +49,6 @@ ignore = [
     "E501",  # TODO: maybe remove
     "EM101",  # TODO: maybe remove
     "EM102",  # TODO: maybe remove
-    "FA102",  # TODO: remove
     "FIX002",
     "N818",
     "PT009",
