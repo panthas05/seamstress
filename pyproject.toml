@@ -66,7 +66,6 @@ ignore = [
     "TD002",
     "TD003",
     "TRY003",  # TODO: maybe remove
-    "TRY201",  # TODO: maybe remove
 ]
 
 [dependency-groups]
