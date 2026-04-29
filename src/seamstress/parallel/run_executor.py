@@ -28,10 +28,10 @@ def _enter_context_then_wait(
         with context_manager:
             context_entered_event.set()
             exit_context_event.wait()
-    except BaseException as e:
+    except BaseException:
         if not context_entered_event.is_set():
             context_entered_event.set()
-        raise e
+        raise
 
 
 def _run_context_manager_in_executor(
@@ -159,7 +159,7 @@ def _run_executor(
             e.add_note(
                 f'Raised by "{context_manager_identifier}" passed to `seamstress.run_{executor_type.value}`.',
             )
-        raise e
+        raise e  # noqa:TRY201
 
     if executor.is_alive():
         _raise_executor_still_alive(
