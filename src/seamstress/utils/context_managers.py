@@ -1,5 +1,8 @@
-import types
 import typing
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import types
 
 GenericContextManager = (
     typing.AsyncContextManager[typing.Any] | typing.ContextManager[typing.Any]
