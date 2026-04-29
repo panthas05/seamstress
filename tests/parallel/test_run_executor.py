@@ -22,7 +22,7 @@ def context_manager_stub() -> typing.Iterator[None]:
 class TestRunContextManagerInExecutor(unittest.TestCase):
     def test_raises_if_shared_memory_size_passed_for_a_thread_executor(self) -> None:
         with self.assertRaises(ValueError):
-            run_executor._run_context_manager_in_executor(
+            run_executor._run_context_manager_in_executor(  # noqa:SLF001
                 context_manager=context_manager_stub(),
                 executor_type=run_executor.ExecutorType.THREAD,
                 shared_memory_size=1,
