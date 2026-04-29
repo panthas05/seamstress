@@ -17,7 +17,7 @@ class PropagatingThread(threading.Thread):
     _exception_raised_by_target: BaseException | None
     _exception_lock: threading.Lock
 
-    def __init__(
+    def __init__(  # noqa:PLR0913
         self,
         group: None = None,
         target: collections.abc.Callable[..., object] | None = None,
@@ -124,7 +124,7 @@ class PropagatingProcess(multiprocessing.Process):
     # lets us pass the required size back to the spawning process
     _memory_for_size_required: shared_memory.SharedMemory
 
-    def __init__(
+    def __init__(  # noqa:PLR0913
         self,
         kwargs: collections.abc.Mapping[str, typing.Any],
         group: None = None,
