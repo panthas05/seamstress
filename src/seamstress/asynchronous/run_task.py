@@ -34,11 +34,11 @@ async def _run_context_manager_in_task(
 
     try:
         event_loop = asyncio.get_running_loop()
-    except RuntimeError:
+    except RuntimeError as e:
         raise NoRunningEventLoop(
             "Please ensure that `async_hog_lock` is called from within an async task, "
             "so that it has access to a running event loop.",
-        )
+        ) from e
 
     task = event_loop.create_task(
         _enter_context_then_wait(
