@@ -32,7 +32,6 @@ strict = true
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
-    "B904",  # TODO: remove
     "BLE001",  # TODO: remove
     "D100",  # TODO: remove
     "D101",  # TODO: remove
