@@ -1,4 +1,5 @@
-import collections
+from __future__ import annotations
+
 import contextlib
 import enum
 import multiprocessing
@@ -6,6 +7,9 @@ import pickle
 import threading
 import typing
 from multiprocessing import shared_memory
+
+if typing.TYPE_CHECKING:
+    import collections
 
 
 class PropagatingThread(threading.Thread):
