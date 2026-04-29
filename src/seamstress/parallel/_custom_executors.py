@@ -1,4 +1,5 @@
 import collections
+import contextlib
 import enum
 import multiprocessing
 import pickle
@@ -225,11 +226,9 @@ class PropagatingProcess(multiprocessing.Process):
 
             for memory in memory_to_free:
                 memory.close()
-                try:
-                    memory.unlink()
-                except FileNotFoundError:
-                    # Cautious catch for bug in shared_memory, see:
+                with contextlib.suppress(FileNotFoundError):
+                    # Suppress a known bug in shared_memory, see:
                     # - https://bugs.python.org/issue39959
                     # - https://github.com/python/cpython/issues/84140
                     # - https://github.com/python/cpython/issues/82300
-                    pass
+                    memory.unlink()
