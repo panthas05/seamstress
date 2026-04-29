@@ -42,7 +42,7 @@ class PropagatingThread(threading.Thread):
     def run(self) -> None:
         try:
             return super().run()
-        except BaseException as e:
+        except Exception as e:  # noqa:BLE001
             with self._exception_lock:
                 self._exception_raised_by_target = e
 
@@ -158,7 +158,7 @@ class PropagatingProcess(multiprocessing.Process):
     def run(self) -> None:
         try:
             return super().run()
-        except BaseException as exception:
+        except Exception as exception:  # noqa:BLE001
             outcome = _write_exception_to_shared_memory(
                 exception,
                 self._memory_for_exception_raised_by_target,
