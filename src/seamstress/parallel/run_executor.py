@@ -124,11 +124,12 @@ def _raise_executor_still_alive(
     context_manager_identifier = (
         utils.context_managers.get_identifier_for_context_manager(context_manager)
     )
-    raise exception_class(
+    error_message = (
         f'The {executor_type} running "{context_manager_identifier}" was still alive after '
         f"{alive_time_description}. If this doesn't indicate a bug, consider "
-        f"passing a longer timeout value to `run_{executor_type}`.",
+        f"passing a longer timeout value to `run_{executor_type}`."
     )
+    raise exception_class(error_message)
 
 
 @contextlib.contextmanager

@@ -207,13 +207,14 @@ class PropagatingProcess(multiprocessing.Process):
                     byteorder="big",
                     signed=False,
                 )
-                raise ExceptionTooLargeToPropagate(
+                error_message = (
                     "`seamstress.run_process` tried to propagate an exception from the "
                     "spawned process back to the process in which it was called, but "
                     "it was too large. Please tweak the call to `run_process` in this "
                     "test to include the keyword argument "
-                    f"`shared_memory_size={size_required}`.",
+                    f"`shared_memory_size={size_required}`."
                 )
+                raise ExceptionTooLargeToPropagate(error_message)
 
             shared_buffer_holding_exception = (
                 self._memory_for_exception_raised_by_target.buf
