@@ -130,9 +130,9 @@ class TestAsyncHogLock(unittest.IsolatedAsyncioTestCase):
             ),
         )
 
-        assert (
-            'Raised by "raise_exception_on_entry" passed to `seamstress.run_task`.'
-            in printed_output
+        self.assertIn(
+            'Raised by "raise_exception_on_entry" passed to `seamstress.run_task`.',
+            printed_output,
         )
 
     async def test_propagates_exception_raised_on_context_manager_exit_back_to_test(
@@ -152,7 +152,7 @@ class TestAsyncHogLock(unittest.IsolatedAsyncioTestCase):
             ),
         )
 
-        assert (
-            'Raised by "raise_exception_on_exit" passed to `seamstress.run_task`.'
-            in printed_output
+        self.assertIn(
+            'Raised by "raise_exception_on_exit" passed to `seamstress.run_task`.',
+            printed_output,
         )
