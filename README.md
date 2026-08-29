@@ -49,8 +49,7 @@ def run_thread(
     context_manager: typing.ContextManager[None],
     *,
     timeout: float | None = None,
-) -> typing.ContextManager[None]:
-    ...
+) -> typing.ContextManager[None]: ...
 ~~~
 
 #### `ThreadConfig`
@@ -108,8 +107,7 @@ def run_process(
     *,
     timeout: float | None = None,
     shared_memory_size: int | None = None,
-) -> typing.ContextManager[None]:
-    ...
+) -> typing.ContextManager[None]: ...
 ~~~
 
 #### `ProcessConfig`
@@ -155,8 +153,7 @@ async def run_task(
     context_manager: typing.AsyncContextManager[None],
     *,
     timeout: float | None = None,
-) -> typing.AsyncIterator[None]:
-    ...
+) -> typing.AsyncIterator[None]: ...
 ~~~
 
 #### `TaskConfig`
@@ -214,6 +211,7 @@ import seamstress
 
 import pay_individual
 
+
 class PayIndividualLockHogger(seamstress.ThreadConfig):
     """
     Config for a thread that hogs `PAY_INDIVIDUAL_LOCK`, acquiring it for the
@@ -226,12 +224,12 @@ class PayIndividualLockHogger(seamstress.ThreadConfig):
     def tear_down_thread(self) -> None:
         pay_individual.PAY_INDIVIDUAL_LOCK.release()
 
+
 class TestPayIndividual(unittest.TestCase):
     def test_raises_if_multiple_threads_try_to_pay_individuals(self) -> None:
         with seamstress.run_thread(PayIndividualLockHogger()):
             with self.assertRaises(pay_individual.AlreadyPayingIndividual):
                 pay_individual.pay_individual(...)
-
 ~~~
 
 Let's break down what happened in the above.
@@ -289,6 +287,7 @@ import seamstress
 
 import pay_individual
 
+
 class PayIndividualLockHogger:
     def __enter__(self) -> None:
         pay_individual.PAY_INDIVIDUAL_LOCK.acquire()
@@ -301,10 +300,10 @@ class PayIndividualLockHogger:
     ) -> None:
         pay_individual.PAY_INDIVIDUAL_LOCK.release()
 
+
 class TestPayIndividual(unittest.TestCase):
     # as before
     ...
-
 ~~~
 
 Taking this further, `threading.Lock` is itself is a context manager, and so
@@ -319,12 +318,12 @@ import seamstress
 
 import pay_individual
 
+
 class TestPayIndividual(unittest.TestCase):
     def test_raises_if_multiple_threads_try_to_pay_individuals(self) -> None:
         with seamstress.run_thread(pay_individual.PAY_INDIVIDUAL_LOCK):
             with self.assertRaises(pay_individual.AlreadyPayingIndividual):
                 pay_individual.pay_individual(...)
-
 ~~~
 
 Though perhaps this is a little less clear than using `ThreadConfig`.
@@ -417,6 +416,7 @@ def build_pay_individual_lock_hogger(
 
     return pay_individual_lock_hogger()
 
+
 class TestPayIndividual(TestCase):
     def test_raises_individual_already_being_paid(self) -> None:
         individual = models.Individual.objects.create(...)
@@ -428,7 +428,6 @@ class TestPayIndividual(TestCase):
         with seamstress.run_thread(pay_individual_lock_hogger):
             with self.assertRaises(pay_individual.AlreadyPayingIndividual):
                 pay_individual.pay_individual(...)
-
 ~~~
 
 Interestingly, this means you can test locking behaviours without having to use
@@ -488,6 +487,7 @@ import seamstress
 
 import pay_individual
 
+
 class PayIndividualLockHogger(seamstress.TaskConfig):
     async def set_up_task(self) -> None:
         await pay_individual.PAY_INDIVIDUAL_LOCK.acquire()
@@ -495,12 +495,12 @@ class PayIndividualLockHogger(seamstress.TaskConfig):
     async def tear_down_task(self) -> None:
         pay_individual.PAY_INDIVIDUAL_LOCK.release()
 
+
 class TestPayIndividual(unittest.IsolatedAsyncioTestCase):
     async def test_raises_if_multiple_tasks_try_to_pay_individuals(self) -> None:
         async with seamstress.run_task(PayIndividualLockHogger()):
             with self.assertRaises(pay_individual.AlreadyPayingIndividual):
                 await pay_individual.pay_individual(...)
-
 ~~~
 
 ## Contributing to `seamstress`
