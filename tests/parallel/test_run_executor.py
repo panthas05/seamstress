@@ -177,9 +177,9 @@ class TestRunThread(unittest.TestCase):
             ),
         )
 
-        assert (
-            'Raised by "raise_exception_on_entry" passed to `seamstress.run_thread`.'
-            in printed_output
+        self.assertIn(
+            'Raised by "raise_exception_on_entry" passed to `seamstress.run_thread`.',
+            printed_output,
         )
 
     def test_propagates_exception_raised_on_exit_back_to_main_thread(self) -> None:
@@ -199,9 +199,9 @@ class TestRunThread(unittest.TestCase):
             ),
         )
 
-        assert (
-            'Raised by "raise_exception_on_exit" passed to `seamstress.run_thread`.'
-            in printed_output
+        self.assertIn(
+            'Raised by "raise_exception_on_exit" passed to `seamstress.run_thread`.',
+            printed_output,
         )
 
 
@@ -371,9 +371,9 @@ class TestRunProcess(unittest.TestCase):
             ),
         )
 
-        assert (
-            'Raised by "raise_exception_on_entry" passed to `seamstress.run_process`.'
-            in printed_output
+        self.assertIn(
+            'Raised by "raise_exception_on_entry" passed to `seamstress.run_process`.',
+            printed_output,
         )
 
     def test_propagates_exception_raised_on_exit_back_to_spawning_process(self) -> None:
@@ -394,9 +394,9 @@ class TestRunProcess(unittest.TestCase):
             ),
         )
 
-        assert (
-            'Raised by "raise_exception_on_exit" passed to `seamstress.run_process`.'
-            in printed_output
+        self.assertIn(
+            'Raised by "raise_exception_on_exit" passed to `seamstress.run_process`.',
+            printed_output,
         )
 
     def _extract_suggested_shared_memory_size_from_printed_exception_output(
@@ -440,10 +440,11 @@ class TestRunProcess(unittest.TestCase):
         )
 
         with self.subTest("The exception's traceback was sufficiently helpful"):
-            assert (
+            self.assertIn(
                 "Please tweak the call to `run_process` in this test to include the "
-                "keyword argument `shared_memory_size="
-            ) in printed_output
+                "keyword argument `shared_memory_size=",
+                printed_output,
+            )
 
         new_shared_memory_size = (
             self._extract_suggested_shared_memory_size_from_printed_exception_output(
@@ -491,10 +492,11 @@ class TestRunProcess(unittest.TestCase):
         )
 
         with self.subTest("The exception's traceback was sufficiently helpful"):
-            assert (
+            self.assertIn(
                 "Please tweak the call to `run_process` in this test to include the "
-                "keyword argument `shared_memory_size="
-            ) in printed_output
+                "keyword argument `shared_memory_size=",
+                printed_output,
+            )
 
         new_shared_memory_size = (
             self._extract_suggested_shared_memory_size_from_printed_exception_output(
