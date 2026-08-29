@@ -88,7 +88,7 @@ class TestRunThread(unittest.TestCase):
         - Before `seamstress.run_thread` is entered, the lock shouldn't be acquired
         - From within `seamstress.run_thread`'s context, the lock should be acquired
         - After exiting `seamstress.run_thread`'s context, the lock should be released
-        """
+        """  # noqa: D415
         lock = threading.Lock()
 
         lock_acquirer = build_threading_lock_acquirer(lock=lock)
@@ -267,7 +267,7 @@ class TestRunProcess(unittest.TestCase):
         If we managed to acquire the lock, it wasn't locked/acquired by another
         process, so we use that value to determine the return value of this function.
         However, we don't want to pollute test state, so if we did manage to acquire the
-        lock, release it so it goes back into its unlocked/unacquired state
+        lock, release it so it goes back into its unlocked/unacquired state.
         """
         # TODO: replace this method with calls to lock.locked() when python 3.14 becomes
         # the minimum supported version.
@@ -278,7 +278,7 @@ class TestRunProcess(unittest.TestCase):
 
     def test_runs_context_manager_to_yield_on_entry(self) -> None:
         """
-        See docstring in TestRunProcess
+        See docstring in `TestRunProcess`.
         """
         lock_acquirer = build_process_lock_acquirer(lock=self.lock)
 

@@ -78,7 +78,7 @@ class TestRunProcessWithProcessConfig(unittest.TestCase):
         If we managed to acquire the lock, it wasn't locked/acquired by another
         process, so we use that value to determine the return value of this function.
         However, we don't want to pollute test state, so if we did manage to acquire the
-        lock, release it so it goes back into its unlocked/unacquired state
+        lock, release it so it goes back into its unlocked/unacquired state.
         """
         # TODO: replace this method with calls to lock.locked() when python 3.14 becomes
         # the minimum supported version.
