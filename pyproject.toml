@@ -34,19 +34,19 @@ select = ["ALL"]
 ignore = [
     "CPY001",
     "COM812",
-    "D100",  # TODO: remove
-    "D101",  # TODO: remove
-    "D102",  # TODO: remove
-    "D103",  # TODO: remove
-    "D104",  # TODO: remove
-    "D105",  # TODO: maybe remove
-    "D107",  # TODO: maybe remove
-    "D200",  # TODO: remove
-    "D401",  # TODO: remove
+    "D100",
+    "D101",
+    "D102",
+    "D103",
+    "D104",
+    "D105",
+    "D107",
+    "D200",
+    "D401",
     "D203",
-    "D205",  # TODO: maybe remove
+    "D205",
     "D212",
-    "E501",  # TODO: maybe remove
+    "E501",
     "FIX002",
     "N818",
     "PT009",
