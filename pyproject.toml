@@ -54,7 +54,6 @@ ignore = [
     "SIM117",
     "TD002",
     "TD003",
-    "TRY003",  # TODO: maybe remove
 ]
 
 [dependency-groups]
