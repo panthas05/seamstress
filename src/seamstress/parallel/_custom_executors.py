@@ -115,6 +115,10 @@ class ExceptionTooLargeToPropagate(Exception):
     pass
 
 
+class PickledObjectWasNotAnException(Exception):
+    pass
+
+
 class PropagatingProcess(multiprocessing.Process):
     """
     Propagates any exceptions raised in the process back to the process that spawned it.
@@ -220,6 +224,13 @@ class PropagatingProcess(multiprocessing.Process):
             # exception
             if not all(byte == 0 for byte in exception_buffer_bytes):
                 unpickled_exception = pickle.loads(exception_buffer_bytes)  # noqa:S301 - we can trust the buffer's contents as it was us who wrote to it
+                if not isinstance(unpickled_exception, Exception):
+                    raise PickledObjectWasNotAnException(
+                        "In attempting to propagate an exception between processes, a "
+                        "object that wasn't an exception was written to shared memory. "
+                        "This is indicative of a bug - please file a report."
+                    )
+
                 raise unpickled_exception
         finally:
             # Clean up shared memory
