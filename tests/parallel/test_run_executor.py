@@ -88,7 +88,7 @@ class TestRunThread(unittest.TestCase):
         - Before `seamstress.run_thread` is entered, the lock shouldn't be acquired
         - From within `seamstress.run_thread`'s context, the lock should be acquired
         - After exiting `seamstress.run_thread`'s context, the lock should be released
-        """  # noqa: D415
+        """  # noqa: D415, D400
         lock = threading.Lock()
 
         lock_acquirer = build_threading_lock_acquirer(lock=lock)
