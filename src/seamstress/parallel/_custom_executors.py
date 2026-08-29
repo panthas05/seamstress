@@ -219,7 +219,7 @@ class PropagatingProcess(multiprocessing.Process):
             # if something has been written to the buffer, unpickle and raise the
             # exception
             if not all(byte == 0 for byte in exception_buffer_bytes):
-                unpickled_exception = pickle.loads(exception_buffer_bytes)
+                unpickled_exception = pickle.loads(exception_buffer_bytes)  # noqa:S301 - we can trust the buffer's contents as it was us who wrote to it
                 raise unpickled_exception
         finally:
             # Clean up shared memory
