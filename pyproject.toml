@@ -56,7 +56,6 @@ ignore = [
     "PT009",
     "PT027",
     "S101",  # TODO: remove
-    "S301",  # TODO: remove
     "SIM117",
     "TD002",
     "TD003",
