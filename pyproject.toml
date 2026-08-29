@@ -32,6 +32,8 @@ strict = true
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
+    "CPY001",
+    "COM812",
     "D100",  # TODO: remove
     "D101",  # TODO: remove
     "D102",  # TODO: remove
