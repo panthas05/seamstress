@@ -95,7 +95,9 @@ def _write_exception_to_shared_memory(
     shared_memory_for_exception: shared_memory.SharedMemory,
 ) -> WriteExceptionOutcome:
     """
-    Pickles the passed exception, writing its bytes to the passed shared memory. Retuns
+    Pickles the passed exception, writing its bytes to the passed shared memory. Returns
+    a value representing whether or not the exception was successfully written to shared
+    memory.
     """
     pickled_exception = pickle.dumps(exception)
     pickled_exception_size = len(pickled_exception)
