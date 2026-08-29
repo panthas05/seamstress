@@ -101,8 +101,9 @@ async def run_task(
         context_manager_identifier = (
             utils.context_managers.get_identifier_for_context_manager(context_manager)
         )
-        raise TaskStillExecuting(
+        error_message = (
             f'The task running "{context_manager_identifier}" was still executing after '
             f"{alive_time_description}. If this doesn't indicate a bug, consider "
-            "passing a longer timeout value to `run_task`.",
-        ) from e
+            "passing a longer timeout value to `run_task`."
+        )
+        raise TaskStillExecuting(error_message) from e
