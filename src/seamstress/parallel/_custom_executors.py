@@ -227,11 +227,12 @@ class PropagatingProcess(multiprocessing.Process):
             if not all(byte == 0 for byte in exception_buffer_bytes):
                 unpickled_exception = pickle.loads(exception_buffer_bytes)  # noqa:S301 - we can trust the buffer's contents as it was us who wrote to it
                 if not isinstance(unpickled_exception, Exception):
-                    raise PickledObjectWasNotAnException(
+                    error_message = (
                         "In attempting to propagate an exception between processes, a "
                         "object that wasn't an exception was written to shared memory. "
                         "This is indicative of a bug - please file a report."
                     )
+                    raise PickledObjectWasNotAnException(error_message)
 
                 raise unpickled_exception
         finally:

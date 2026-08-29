@@ -53,9 +53,8 @@ def _run_context_manager_in_executor(
 
     if executor_type == ExecutorType.THREAD:
         if shared_memory_size is not None:
-            raise ValueError(
-                "`shared_memory_size` argument should not be used with a thread executor",
-            )
+            error_message = "`shared_memory_size` argument should not be used with a thread executor"
+            raise ValueError(error_message)
 
         context_entered_event = threading.Event()
         exit_context_event = threading.Event()
