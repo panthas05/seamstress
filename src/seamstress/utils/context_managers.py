@@ -35,4 +35,7 @@ def get_identifier_for_context_manager(
         if gen_name_attr:
             return gen_name_attr
 
+    if class_name := context_manager.__class__.__name__:
+        return class_name
+
     return "<unknown>"
