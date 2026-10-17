@@ -1,5 +1,5 @@
-from .executor_config import ProcessConfig
-from .run_executor import run_process
+from .process_config import ProcessConfig
+from .run_process import run_process
 from .run_thread import run_thread
 from .thread_config import ThreadConfig
 

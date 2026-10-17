@@ -10,14 +10,16 @@ from multiprocessing.synchronize import Lock as MultiprocessingLock
 
 import seamstress
 from seamstress.parallel import run_executor
-from seamstress.parallel._custom_executors import ExceptionTooLargeToPropagate
-from seamstress.parallel.run_executor import ProcessStillAlive
 
 # Run tests covering `run_executor` whilst building independent implementations
 # for `run_thread` and `run_process` as a double check that no existing
 # behaviour has been lost whilst refactoring. This does, however, require the
 # changing of certain imports, since the exceptions defined in `run_executor`
 # are no longer what gets raised.
+from seamstress.parallel.run_process import (
+    ExceptionTooLargeToPropagate,
+    ProcessStillAlive,
+)
 from seamstress.parallel.run_thread import ThreadStillAlive
 
 
