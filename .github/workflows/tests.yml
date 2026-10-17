@@ -31,11 +31,11 @@ jobs:
         with:
           enable-cache: true
 
-      - name: Set up Python
-        run: uv python install
+      - name: Set up Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
 
       - name: Install Lock Hog
-        run: uv sync --locked
+        run: uv sync --python ${{ matrix.python-version }} --locked
 
       - name: Run tests
-        run: uv run python3 -m unittest
+        run: uv run python3 --python ${{ matrix.python-version }} -m unittest
