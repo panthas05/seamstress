@@ -20,8 +20,8 @@ class _PropagatingThread(threading.Thread):
     _exception_raised_by_target: Exception | None
     _exception_lock: threading.Lock
 
-    @typing.override
-    def __init__(
+    @utils.typing.override
+    def __init__(  # noqa: PLR0913
         self,
         group: None = None,
         target: collections.abc.Callable[..., object] | None = None,
@@ -43,7 +43,7 @@ class _PropagatingThread(threading.Thread):
             daemon=daemon,
         )
 
-    @typing.override
+    @utils.typing.override
     def run(self) -> None:
         try:
             return super().run()
@@ -51,7 +51,7 @@ class _PropagatingThread(threading.Thread):
             with self._exception_lock:
                 self._exception_raised_by_target = e
 
-    @typing.override
+    @utils.typing.override
     def join(self, timeout: float | None = None) -> None:
         super().join(timeout=timeout)
 
