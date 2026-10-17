@@ -91,8 +91,8 @@ class _PropagatingProcess(multiprocessing.Process):
     # lets us pass the required size back to the main/spawning process
     _memory_for_size_required: shared_memory.SharedMemory
 
-    @typing.override
-    def __init__(
+    @utils.typing.override
+    def __init__(  # noqa: PLR0913
         self,
         kwargs: collections.abc.Mapping[str, typing.Any],
         group: None = None,
@@ -123,7 +123,7 @@ class _PropagatingProcess(multiprocessing.Process):
             daemon=daemon,
         )
 
-    @typing.override
+    @utils.typing.override
     def run(self) -> None:
         try:
             return super().run()
@@ -141,7 +141,7 @@ class _PropagatingProcess(multiprocessing.Process):
                     self._memory_for_size_required,
                 )
 
-    @typing.override
+    @utils.typing.override
     def join(self, timeout: float | None = None) -> None:
         super().join(timeout=timeout)
 
