@@ -86,6 +86,13 @@ def raise_very_large_exception_on_exit() -> typing.Iterator[None]:
     raise VeryLargeException("a" * INTEGER_LARGER_THAN_DEFAULT_SHARED_MEMORY_SIZE)
 
 
+@unittest.skipIf(
+    multiprocessing.get_start_method() != "fork",
+    reason=(
+        '`run_process` only works when multiprocessing start method is "fork" - '
+        'support for "spawn" and "forkserver" to be added in due course.'
+    ),
+)
 class TestRunProcess(unittest.TestCase):
     def setUp(self) -> None:
         self.lock = multiprocessing.Lock()
