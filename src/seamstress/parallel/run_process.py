@@ -1,12 +1,9 @@
 from __future__ import annotations
 
 import contextlib
-import enum
 import multiprocessing
-import pickle
 import sys
 import typing
-from multiprocessing import shared_memory
 
 from seamstress import utils
 
@@ -19,87 +16,10 @@ if typing.TYPE_CHECKING:
 ### building blocks
 
 
-class _SharedBufferForSizeRequiredWasNone(Exception):
-    pass
-
-
-def _write_size_required_for_exception_to_shared_memory(
-    pickled_exception: bytes,
-    shared_memory_for_size_required: shared_memory.SharedMemory,
-) -> None:
-    pickled_exception_size = len(pickled_exception)
-
-    shared_buffer = shared_memory_for_size_required.buf
-    if shared_buffer is None:
-        raise _SharedBufferForSizeRequiredWasNone
-
-    exception_size_bytes_repr = pickled_exception_size.to_bytes(
-        shared_buffer.nbytes,
-        byteorder="big",
-        signed=False,
-    )
-
-    shared_buffer[: shared_buffer.nbytes] = exception_size_bytes_repr
-
-
-if sys.version_info >= (3, 11):
-    # StrEnum was only added in python 3.11
-    class _WriteExceptionOutcome(enum.StrEnum):
-        SUCCESS = "SUCCESS"
-        NOT_ENOUGH_MEMORY = "NOT_ENOUGH_MEMORY"
-else:
-
-    class _WriteExceptionOutcome(enum.Enum):
-        SUCCESS = "SUCCESS"
-        NOT_ENOUGH_MEMORY = "NOT_ENOUGH_MEMORY"
-
-
-class _SharedBufferForExceptionWasNone(Exception):
-    pass
-
-
-def _write_exception_to_shared_memory(
-    pickled_exception: bytes,
-    shared_memory_for_exception: shared_memory.SharedMemory,
-) -> _WriteExceptionOutcome:
-    """
-    Writes the passed exception bytes to the passed shared memory. Returns a value
-    stating whether the exception was successfully written to the passed shared memory,
-    or whether it was too small to write the excepetion to.
-    """
-    pickled_exception_size = len(pickled_exception)
-
-    shared_buffer = shared_memory_for_exception.buf
-    if shared_buffer is None:
-        raise _SharedBufferForExceptionWasNone
-
-    if pickled_exception_size <= shared_buffer.nbytes:
-        shared_buffer[:pickled_exception_size] = pickled_exception
-        return _WriteExceptionOutcome.SUCCESS
-
-    return _WriteExceptionOutcome.NOT_ENOUGH_MEMORY
-
-
-class ExceptionTooLargeToPropagate(Exception):
-    pass
-
-
-class _PickledObjectWasNotAnException(Exception):
-    pass
-
-
 class _PropagatingProcess(multiprocessing.Process):
     """
     Propagates any exceptions raised in the process back to the process that spawned it.
     """
-
-    # shared memory for passing a pickled exception from the spawned process to spawning
-    # process, so we can propagate the exception back into the test
-    _memory_for_exception_raised_by_target: shared_memory.SharedMemory
-    # if the above shared memory wasn't big enough to hold the pickled exception, we
-    # need to let the user know to specify a larger size for it - this shared memory
-    # lets us pass the required size back to the main/spawning process
-    _memory_for_size_required: shared_memory.SharedMemory
 
     _queues_access_mutex: MultiprocessingLock
     _queues_closed = False
@@ -121,19 +41,7 @@ class _PropagatingProcess(multiprocessing.Process):
         args: collections.abc.Iterable[typing.Any] = (),
         *,
         daemon: bool | None = None,
-        shared_memory_size: int | None = None,
     ) -> None:
-        memory_for_exception_size = shared_memory_size or 1_000
-        self._memory_for_exception_raised_by_target = shared_memory.SharedMemory(
-            create=True,
-            size=memory_for_exception_size,
-        )
-
-        self._memory_for_size_required = shared_memory.SharedMemory(
-            create=True,
-            size=100,
-        )
-
         (
             self._connection_for_receiving_exception_raised_by_target,
             self._connection_for_sending_exception_raised_by_target,
@@ -159,19 +67,6 @@ class _PropagatingProcess(multiprocessing.Process):
             with self._queues_access_mutex:
                 self._connection_for_sending_exception_raised_by_target.send(exception)
 
-            pickled_exception = pickle.dumps(exception)
-
-            write_exception_outcome = _write_exception_to_shared_memory(
-                pickled_exception,
-                self._memory_for_exception_raised_by_target,
-            )
-
-            if write_exception_outcome == _WriteExceptionOutcome.NOT_ENOUGH_MEMORY:
-                _write_size_required_for_exception_to_shared_memory(
-                    pickled_exception,
-                    self._memory_for_size_required,
-                )
-
     @utils.typing.override
     def join(self, timeout: float | None = None) -> None:
         super().join(timeout=timeout)
@@ -193,77 +88,6 @@ class _PropagatingProcess(multiprocessing.Process):
             self._connection_for_sending_exception_raised_by_target.close()
 
             self._queues_closed = True
-
-        shared_memory_already_freed = any(
-            memory.buf is None
-            for memory in [
-                self._memory_for_exception_raised_by_target,
-                self._memory_for_size_required,
-            ]
-        )
-
-        if shared_memory_already_freed:
-            # `join` can be called multiple times, so if memory has already been freed
-            # (presumably by the below code), return early
-            return
-
-        try:
-            shared_buffer_holding_size_required = self._memory_for_size_required.buf
-            if shared_buffer_holding_size_required is None:
-                raise _SharedBufferForSizeRequiredWasNone
-
-            size_required_buffer_bytes = shared_buffer_holding_size_required.tobytes()
-            if not all(byte == 0 for byte in size_required_buffer_bytes):
-                size_required = int.from_bytes(
-                    size_required_buffer_bytes,
-                    byteorder="big",
-                    signed=False,
-                )
-                error_message = (
-                    "`seamstress.run_process` tried to propagate an exception from the "
-                    "spawned process back to the process in which `run_process` was "
-                    "called, but the exception was too large for the default amount of "
-                    "memory allocated to store the exception in.\nPlease tweak the "
-                    "call to `run_process` in this test to include the keyword "
-                    f"argument `shared_memory_size={size_required}`."
-                )
-                raise ExceptionTooLargeToPropagate(error_message)
-
-            shared_buffer_holding_exception = (
-                self._memory_for_exception_raised_by_target.buf
-            )
-            if shared_buffer_holding_exception is None:
-                raise _SharedBufferForExceptionWasNone
-
-            exception_buffer_bytes = shared_buffer_holding_exception.tobytes()
-            # if something has been written to the buffer, unpickle and raise the
-            # exception
-            if not all(byte == 0 for byte in exception_buffer_bytes):
-                unpickled_exception = pickle.loads(exception_buffer_bytes)  # noqa:S301 - we can trust the buffer's contents as it was us who wrote to it
-                if not isinstance(unpickled_exception, Exception):
-                    error_message = (
-                        "In attempting to propagate an exception between processes, a "
-                        "object that wasn't an exception was written to shared memory. "
-                        "This is indicative of a bug - please file a report."
-                    )
-                    raise _PickledObjectWasNotAnException(error_message)
-
-                raise unpickled_exception
-        finally:
-            # Clean up shared memory
-            memory_to_free = [
-                self._memory_for_exception_raised_by_target,
-                self._memory_for_size_required,
-            ]
-
-            for memory in memory_to_free:
-                memory.close()
-                with contextlib.suppress(FileNotFoundError):
-                    # Suppress a known bug in shared_memory, see:
-                    # - https://bugs.python.org/issue39959
-                    # - https://github.com/python/cpython/issues/84140
-                    # - https://github.com/python/cpython/issues/82300
-                    memory.unlink()
 
 
 def _enter_context_then_wait(
@@ -345,7 +169,6 @@ class _ContextManagerRunner:
         *,
         context_manager: contextlib.AbstractContextManager[None],
         join_timeout: float,
-        shared_memory_size: int | None,
     ) -> None:
 
         self._context_manager = context_manager
@@ -363,7 +186,6 @@ class _ContextManagerRunner:
             },
             # Don't prevent the programme from exiting - this is only a test utility
             daemon=True,
-            shared_memory_size=shared_memory_size,
         )
 
         self._process_started = False
@@ -416,7 +238,6 @@ def run_process(
     context_manager: contextlib.AbstractContextManager[None],
     *,
     timeout: float | None = None,
-    shared_memory_size: int | None = None,
 ) -> typing.Generator[None]:
     if timeout is None:
         timeout = _DEFAULT_PROCESS_JOIN_TIMEOUT
@@ -424,7 +245,6 @@ def run_process(
     runner = _ContextManagerRunner(
         context_manager=context_manager,
         join_timeout=timeout,
-        shared_memory_size=shared_memory_size,
     )
 
     runner.enter_context_manager_in_process()
