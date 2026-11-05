@@ -40,9 +40,16 @@ def _write_size_required_for_exception_to_shared_memory(
     shared_buffer[: shared_buffer.nbytes] = exception_size_bytes_repr
 
 
-class _WriteExceptionOutcome(enum.StrEnum):
-    SUCCESS = "SUCCESS"
-    NOT_ENOUGH_MEMORY = "NOT_ENOUGH_MEMORY"
+if sys.version_info >= (3, 11):
+    # StrEnum was only added in python 3.11
+    class _WriteExceptionOutcome(enum.StrEnum):
+        SUCCESS = "SUCCESS"
+        NOT_ENOUGH_MEMORY = "NOT_ENOUGH_MEMORY"
+else:
+
+    class _WriteExceptionOutcome(enum.Enum):
+        SUCCESS = "SUCCESS"
+        NOT_ENOUGH_MEMORY = "NOT_ENOUGH_MEMORY"
 
 
 class _SharedBufferForExceptionWasNone(Exception):
