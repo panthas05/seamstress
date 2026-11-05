@@ -3,6 +3,7 @@ from __future__ import annotations
 import contextlib
 import multiprocessing
 import re
+import sys
 import time
 import traceback
 import typing
@@ -199,6 +200,10 @@ class TestRunProcess(unittest.TestCase):
             with seamstress.run_process(raise_exception_on_entry()):
                 pass
 
+        if sys.version_info < (3, 11):
+            # Exception notes unsupported before python 3.11
+            return
+
         printed_output = "\n".join(
             traceback.format_exception(
                 type(cm.exception),
@@ -221,6 +226,10 @@ class TestRunProcess(unittest.TestCase):
         with self.assertRaises(PropagatedException) as cm:
             with seamstress.run_process(raise_exception_on_exit()):
                 pass
+
+        if sys.version_info < (3, 11):
+            # Exception notes unsupported before python 3.11
+            return
 
         printed_output = "\n".join(
             traceback.format_exception(

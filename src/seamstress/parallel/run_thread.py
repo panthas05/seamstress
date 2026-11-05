@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import sys
 import threading
 import typing
 
@@ -182,9 +183,10 @@ class _ContextManagerRunner:
                     self._context_manager
                 )
             )
-            e.add_note(
-                f'Raised by "{context_manager_identifier}" passed to `seamstress.run_thread`.',
-            )
+            if sys.version_info >= (3, 11):
+                e.add_note(
+                    f'Raised by "{context_manager_identifier}" passed to `seamstress.run_thread`.',
+                )
             raise
 
         if self._thread.is_alive():
