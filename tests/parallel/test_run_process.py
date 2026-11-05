@@ -256,6 +256,10 @@ class TestRunProcess(unittest.TestCase):
             )
         return int(suggestion_match.group(1))
 
+    @unittest.skip(
+        "No longer relevant since refactoring of `_PropagatingProcess` to use a "
+        "pipe to propagate exceptions - test pending removal"
+    )
     def test_raises_when_propagated_exception_from_entry_too_large_for_default_shared_memory_size(
         self,
     ) -> None:
@@ -308,6 +312,10 @@ class TestRunProcess(unittest.TestCase):
                 ):
                     pass
 
+    @unittest.skip(
+        "No longer relevant since refactoring of `_PropagatingProcess` to use a "
+        "pipe to propagate exceptions - test pending removal"
+    )
     def test_raises_when_propagated_exception_from_exit_too_large_for_default_shared_memory_size(
         self,
     ) -> None:

@@ -13,6 +13,8 @@ from seamstress import utils
 if typing.TYPE_CHECKING:
     import collections
     from multiprocessing.synchronize import Event
+    from multiprocessing.synchronize import Lock as MultiprocessingLock
+
 
 ### building blocks
 
@@ -99,6 +101,16 @@ class _PropagatingProcess(multiprocessing.Process):
     # lets us pass the required size back to the main/spawning process
     _memory_for_size_required: shared_memory.SharedMemory
 
+    _queues_access_mutex: MultiprocessingLock
+    _queues_closed = False
+
+    _connection_for_sending_exception_raised_by_target: (
+        multiprocessing.connection.Connection
+    )
+    _connection_for_receiving_exception_raised_by_target: (
+        multiprocessing.connection.Connection
+    )
+
     @utils.typing.override
     def __init__(  # noqa: PLR0913
         self,
@@ -122,6 +134,14 @@ class _PropagatingProcess(multiprocessing.Process):
             size=100,
         )
 
+        (
+            self._connection_for_receiving_exception_raised_by_target,
+            self._connection_for_sending_exception_raised_by_target,
+        ) = multiprocessing.Pipe(duplex=False)
+
+        self._queues_access_mutex = multiprocessing.Lock()
+        self._queues_closed = False
+
         super().__init__(
             group=group,
             target=target,
@@ -136,6 +156,9 @@ class _PropagatingProcess(multiprocessing.Process):
         try:
             return super().run()
         except Exception as exception:  # noqa:BLE001
+            with self._queues_access_mutex:
+                self._connection_for_sending_exception_raised_by_target.send(exception)
+
             pickled_exception = pickle.dumps(exception)
 
             write_exception_outcome = _write_exception_to_shared_memory(
@@ -152,6 +175,24 @@ class _PropagatingProcess(multiprocessing.Process):
     @utils.typing.override
     def join(self, timeout: float | None = None) -> None:
         super().join(timeout=timeout)
+
+        with self._queues_access_mutex:
+            if self._queues_closed:
+                # join can be called multiple times - use `self._queues_closed` as a
+                # flag to prevent calling `connection.close()` multiple times
+                return
+
+            if self._connection_for_receiving_exception_raised_by_target.poll():
+                exception_raised_in_spawned_process = (
+                    self._connection_for_receiving_exception_raised_by_target.recv()
+                )
+
+                raise exception_raised_in_spawned_process
+
+            self._connection_for_receiving_exception_raised_by_target.close()
+            self._connection_for_sending_exception_raised_by_target.close()
+
+            self._queues_closed = True
 
         shared_memory_already_freed = any(
             memory.buf is None
