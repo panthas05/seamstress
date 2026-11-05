@@ -66,6 +66,39 @@ class TaskStillExecuting(Exception):
     pass
 
 
+async def _join_task_with_timeout_pre_python_311(
+    *,
+    task: asyncio.Task[None],
+    timeout: float,
+) -> None:
+    await asyncio.wait_for(task, timeout=timeout)
+
+
+async def _join_task_with_timeout_python_311_and_later(
+    *,
+    task: asyncio.Task[None],
+    context_manager: typing.AsyncContextManager[None],
+    timeout: float,
+) -> None:
+    if sys.version_info < (3, 11):
+        error_message = "Function should only be called in python versions before 3.11"
+        raise Exception(error_message)  # noqa:TRY002
+
+    async with asyncio.timeout(timeout):
+        try:
+            await task
+        except BaseException as e:
+            context_manager_identifier = (
+                utils.context_managers.get_identifier_for_context_manager(
+                    context_manager,
+                )
+            )
+            e.add_note(
+                f'Raised by "{context_manager_identifier}" passed to `seamstress.run_task`.',
+            )
+            raise e  # noqa:TRY201
+
+
 @contextlib.asynccontextmanager
 async def run_task(
     context_manager: typing.AsyncContextManager[None],
@@ -83,20 +116,17 @@ async def run_task(
     timeout = timeout or DEFAULT_TIMEOUT
 
     try:
-        async with asyncio.timeout(timeout):
-            try:
-                await task
-            except BaseException as e:
-                context_manager_identifier = (
-                    utils.context_managers.get_identifier_for_context_manager(
-                        context_manager,
-                    )
-                )
-                if sys.version_info >= (3, 11):
-                    e.add_note(
-                        f'Raised by "{context_manager_identifier}" passed to `seamstress.run_task`.',
-                    )
-                raise e  # noqa:TRY201
+        if sys.version_info < (3, 11):
+            await _join_task_with_timeout_pre_python_311(
+                task=task,
+                timeout=timeout,
+            )
+        else:
+            await _join_task_with_timeout_python_311_and_later(
+                task=task,
+                context_manager=context_manager,
+                timeout=timeout,
+            )
 
     except asyncio.TimeoutError as e:
         alive_time_description = "1 second" if timeout == 1.0 else f"{timeout} seconds"
