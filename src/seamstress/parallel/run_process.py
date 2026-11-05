@@ -4,6 +4,7 @@ import contextlib
 import enum
 import multiprocessing
 import pickle
+import sys
 import typing
 from multiprocessing import shared_memory
 
@@ -342,10 +343,12 @@ class _ContextManagerRunner:
                     self._context_manager
                 )
             )
-            e.add_note(
-                f'Raised by "{context_manager_identifier}" passed to '
-                "`seamstress.run_process`.",
-            )
+
+            if sys.version_info >= (3, 11):
+                e.add_note(
+                    f'Raised by "{context_manager_identifier}" passed to '
+                    "`seamstress.run_process`.",
+                )
             raise
 
         if self._process.is_alive():

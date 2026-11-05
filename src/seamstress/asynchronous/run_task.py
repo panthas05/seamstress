@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import sys
 import typing
 
 from seamstress import utils
@@ -91,9 +92,10 @@ async def run_task(
                         context_manager,
                     )
                 )
-                e.add_note(
-                    f'Raised by "{context_manager_identifier}" passed to `seamstress.run_task`.',
-                )
+                if sys.version_info >= (3, 11):
+                    e.add_note(
+                        f'Raised by "{context_manager_identifier}" passed to `seamstress.run_task`.',
+                    )
                 raise e  # noqa:TRY201
 
     except asyncio.TimeoutError as e:

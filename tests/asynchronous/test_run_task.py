@@ -1,5 +1,6 @@
 import asyncio
 import contextlib
+import sys
 import traceback
 import typing
 import unittest
@@ -120,6 +121,10 @@ class TestAsyncHogLock(unittest.IsolatedAsyncioTestCase):
             async with seamstress.run_task(raise_exception_on_entry()):
                 pass
 
+        if sys.version_info < (3, 11):
+            # Exception notes unsupported before python 3.11
+            return
+
         # verify that the printed traceback indicated that the exception had been
         # propagated from the passed context manager
         printed_output = "\n".join(
@@ -141,6 +146,10 @@ class TestAsyncHogLock(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(PropagatedException) as cm:
             async with seamstress.run_task(raise_exception_on_exit()):
                 pass
+
+        if sys.version_info < (3, 11):
+            # Exception notes unsupported before python 3.11
+            return
 
         # verify that the printed traceback indicated that the exception had been
         # propagated from the passed context manager
